@@ -212,11 +212,12 @@ sns.heatmap(numeric_df.corr(),
                annot=True,
                cmap="viridis",
                vmin=-1,vmax=1,
-               mask=mask)```
+               mask=mask)
+```
 
 ## 10.3 시간 시각화
 
-### 선그래프
+#### 선그래프
 - 시간 간격의 밀도가 높을 때 
 - ex) 초 단위의 공정 센서, 일년 간의 일별 판매량 
 - 데이터 양 多 , 변동 심하면) 패턴 파악 어려움 -> 추세선 삽입 
@@ -226,7 +227,7 @@ sns.heatmap(numeric_df.corr(),
 
     ![alt text](image-10.png)
 
-### (누적) 막대 그래프
+#### (누적) 막대 그래프
 - 분절형 시간 시각화 
 - ex) 1년 동안의 월 간격 단위의 흐름 
 - 누적 막대그래프: 한 시점에 2개 이상의 세부 항목 有
@@ -245,11 +246,125 @@ df['Year'] = df['Date2'].dt.year # 연도 칼럼 생성
 
 df_line=df[df.Year==2018] #2018년 데이터만 생성
 df_line=df_line.groupby('Date2')['Sales'].sum().reset_index()
-df_line.head()```
+df_line.head()
+```
+#### 선그래프 시각화
 
-- 선그래프 시각화에 앞서 일자별 매출액 데이터를 가공 
+```
+# 30일 이동평균 생성
+df_line['Month'] = df_line['Sales'].rolling(window=30).mean()
+
+# 선그래프 시각화
+ax = df_line.plot(x='Date2', y='Sales', linewidth="0.5")
+df_line.plot(x='Date2', y='Month', color='#FF7F50', linewidth="1", ax=ax)
+
+```
+![alt text](image-13.png)
 
 
+- rolling() : month 칼럼 새로 생성 
+- plot() : 선그래프 생성
+- 매출액의 편차가 큼 -> 이동평균선 도움
+
+#### 막대그래프 시각화를 위한 데이터 가공 
+
+```
+df_bar_1 = df.groupby('Year')['Sales'].sum().reset_index()
+
+df_bar_1.head()
+ax = df_bar_1.plot.bar(x='Year', y='Sales',rot=0)
+```
+
+- groupby(): 연도별 매출액 합계 
+- rot: 글자의 각도
+
+### 10.4 비교 시각화
+
+- 히트맵 차트
+    - 그룹과 비교 요소가 많을 때 효과적으로 시각화 가능
+    - 행: 그룹 / 열: 요소
+    - 행 A변수, 열 B변수, 색상 C 변수
+
+#### 히트맵 차트의 표현 방법
+1. 하나의 변수(그룹) X N개의 각 변수에 해당하는 값들(수치형)
+
+![alt text](image-14.png) ![alt text](image-15.png)
+
+2. 하나의 변수(그룹) X 하나의 변수(수준)
+
+![alt text](image-16.png) ![alt text](image-17.png)
+
+
+유의할 점: 목적을 정확히 파악, 데이터 정제 작업 요구
+
+
+#### 방사형 차트
+
+1. 하나의 차트에 하나의 그룹을 시각화
+
+![alt text](image-18.png)
+
+2. 하나의 차트에 모든 그룹을 한 번에 시각화
+
+![alt text](image-19.png)
+
+
+#### 평행 좌표 그래프
+
+= 전략 캔버스
+
+![alt text](image-20.png)
+
+- 변수별 값 -> 정규화 ; 평행 좌표 그래프 효과적으로 표현가능
+
+### 10.4.1 비교 시각화 실습
+
+#### 히트맵 시각화를 위한 데이터 전처리
+
+```
+df1 = df[df['Tm'].isin(['ATL','BOS','BRK','CHI','CHO'])]
+
+# 6개 칼럼만 필터링
+df1 = df1[['Tm', 'ORB%', 'TRB%', 'AST%', 'BLK%', 'USG%']]
+
+# 팀별 요소 평균 전처리
+df1 = df1.groupby('Tm').mean()
+```
+
+- 5개의 팀만 필터링
+- 5개의 칼럼만 선택
+- 팀 단위로 평균을 구한다 
+
+#### 팀별 5개 요소 히트맵 시각화
+
+```
+fig = plt,figure(figsize=(8,8))
+fig.set_faceolor('White')
+plt.pcolor(df1.values)
+
+plt.xticks(range(len(df1.coloumns)),df1.coloumns)
+plt.yticks(range(len(df1.index)),df1.index)
+
+plt.xlabel('Value', fontsize=14)
+plt.ylabel('Team', fontsize=14)
+plt.colorbar()
+plt.show()
+```
+
+#### 하나의 변수값에 대한 히트맵 시각화를 위한 데이터 전처리
+```
+df2 = df[df['Tm'].isin(['ATL','BOS','BRK','CHI','CHO'])]
+
+df2 = df2[['Tm','Age','G']]
+
+df2 = df2.groupby(['Tm','Age']).mean().reset_index()
+
+df2 = df2.pivot(index='Tm', columns='Age', values='G')
+df2.head()
+
+```
+
+- 각 팀에서 선수들의 연령에 따라 경기 참여 횟수를 히트맵으로 시각화하기 위한 전처리 
 
 <br>
 <br>
