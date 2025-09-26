@@ -189,7 +189,50 @@ ex) 웹사이트 접속시간, 구매비용 공분산
     - 상관계수가 1이면 분포로 표시
     - 동일한 변수의 산점도를 분포로 표현해주는 기능 
 
-plt.show()
+- .cov()
+    - numeric_df=df.select_dtypes(include=["number"])
+    - 위 코드를 추가해서 숫자형 변수들만 공분산을 계산하도록함 
+    - 각 변수 간의 다른 척도기준이 그대로 반영 -> 직관적으로 상관성 파악x 
+-.corr()
+    - (method='pearson') 기본값이 피어슨이 아닐 경우 추가해줌
+- sns.heatmeap()
+    - 한눈에 상관관계를 파악 가능
+    - but 정확한 수치x
+- sns.cmap()
+    - 히트맵 + 상관계수
+    - 히트맴에서 상관성이 강한 변수들끼리 묶어서 표현 
+
+[중복제거 히트맵]
+np.triu(np.ones_like(numeric_df.corr()))
+
+mask = np.triu(np.ones_like(numeric_df.corr(),dtype=np.bool))
+
+fig,ax=plt.subplots(figsize=(11,9))
+sns.heatmap(numeric_df.corr(),
+               annot=True,
+               cmap="viridis",
+               vmin=-1,vmax=1,
+               mask=mask)
+
+## 10.3 시간 시각화
+
+### 선그래프
+- 시간 간격의 밀도가 높을 때 
+- ex) 초 단위의 공정 센서, 일년 간의 일별 판매량 
+- 데이터 양 多 , 변동 심하면) 패턴 파악 어려움 -> 추세선 삽입 
+- 추세선 : 이동평균 방법 사용
+- ex) 2 -> 5 -> 3 -> 7 -> 4
+    (2 5 3의 평균) -> (5 3 7의 평균) -> (3 7 4의 평균)
+
+    ![alt text](image-10.png)
+
+### (누적) 막대 그래프
+- 분절형 시간 시각화 
+- ex) 1년 동안의 월 간격 단위의 흐름 
+- 누적 막대그래프: 한 시점에 2개 이상의 세부 항목 有
+- ex) a,b,c 품목의 월별 판매량 데이터 
+
+![alt text](image-11.png)
 
 
 
