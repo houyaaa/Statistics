@@ -203,7 +203,7 @@ ex) 웹사이트 접속시간, 구매비용 공분산
     - 히트맴에서 상관성이 강한 변수들끼리 묶어서 표현 
 
 [중복제거 히트맵]
-np.triu(np.ones_like(numeric_df.corr()))
+```np.triu(np.ones_like(numeric_df.corr()))
 
 mask = np.triu(np.ones_like(numeric_df.corr(),dtype=np.bool))
 
@@ -212,7 +212,7 @@ sns.heatmap(numeric_df.corr(),
                annot=True,
                cmap="viridis",
                vmin=-1,vmax=1,
-               mask=mask)
+               mask=mask)```
 
 ## 10.3 시간 시각화
 
@@ -235,13 +235,21 @@ sns.heatmap(numeric_df.corr(),
 ![alt text](image-11.png)
 
 ### 10.3.1 시간 시각화 학습
-```df['Date2']=pd.to_datetime(df['Order Date'], dayfirst=True)
-df = df.sort_values(by='Date2')
-df['Year'] = df['Date2'].dt.year
 
-df_line=df[df.Year==2018]
+#### 일자별 매출액 데이터 가공
+```df['Date2']=pd.to_datetime(df['Order Date'], dayfirst=True) # date 칼럼 날짜 형식 변환
+
+df = df.sort_values(by='Date2') # 날짜 오름차순 정렬
+
+df['Year'] = df['Date2'].dt.year # 연도 칼럼 생성
+
+df_line=df[df.Year==2018] #2018년 데이터만 생성
 df_line=df_line.groupby('Date2')['Sales'].sum().reset_index()
-df_line.head()
+df_line.head()```
+
+- 선그래프 시각화에 앞서 일자별 매출액 데이터를 가공 
+
+
 
 <br>
 <br>
