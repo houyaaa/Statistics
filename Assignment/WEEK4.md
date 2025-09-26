@@ -353,7 +353,7 @@ plt.show()
 
 #### 하나의 변수값에 대한 히트맵 시각화를 위한 데이터 전처리
 ```
-df2 = df[df['Tm'].isin(['ATL','BOS','BRK','CHI','CHO'])]
+df2 = df[df['Tm'].isin(['ATL','BOS','BRK','CHI','CHO'])]# 5개 팀만 필터링/ 
 
 df2 = df2[['Tm','Age','G']]
 
@@ -365,6 +365,153 @@ df2.head()
 ```
 
 - 각 팀에서 선수들의 연령에 따라 경기 참여 횟수를 히트맵으로 시각화하기 위한 전처리 
+- isin: 해당 값이 특정 리스트에 포함되어있는지
+
+#### 하나의 변숫값에 대한 히트맵 시각화
+
+```
+fig = plt.figure(figsize=(8,8))
+fig.set_facecolor('white')
+
+plt.pcolor(df2.values)
+
+plt.xticks(range(len(df2.coloumns)),df2.columns)
+
+plt.yticks(range(len(df2.coloumns)),df2.index)
+
+plt.xlabel('Age', fontsize=14)
+
+plt.ylabel('Team', font=14)
+plt.colorbar()
+plt.show()
+
+```
+
+- 흰색공간은 NULL
+
+#### 방사혛 차트 시각화를 위한 데이터 전처리
+```
+df3 = df1.reset_index()
+
+```
+- df1의 기존 인덱스를 일반 열로 바꾸고 새로운 기본 정수 엔덱스를 다시 만듦
+- pandas의 dataframe은 행 번호 역할을 하는 인덱스를 가짐 
+- groupby, pivot같은 작업을 하면 일부 열이 인덱스로 설정
+- reset_index()를 쓰면 일반 열로 리셋됨
+
+#### 방사형 차트 시각화-하나의 차트에 하나의 그룹씩
+
+```
+# 방사형 차트 - 하나씩 시각화
+
+labels = df3.columns[1:]
+num_labels = len(labels)
+
+# 등분점 생성
+angles = [x/float(num_labels)*(2*pi) for x in range(num_labels)]
+angles += angles[:1]  # 시작점 생성
+
+my_palette = plt.cm.get_cmap("Set2", len(df3.index))
+
+fig = plt.figure(figsize=(15,20))
+fig.set_facecolor('white')
+
+for i, row in df3.iterrows():
+    color = my_palette(i)
+    data = df3.iloc[i].drop('Tm').tolist()
+    data += data[:1]
+
+    ax = plt.subplot(3,2,i+1, polar=True)
+
+    # 시작점 설정
+    ax.set_theta_offset(pi / 2)
+    # 시계방향 설정
+    ax.set_theta_direction(-1)
+
+    plt.xticks(angles[:-1], labels, fontsize=13)
+    # 각 축과 눈금 사이 여백 생성
+    ax.tick_params(axis='x', which='major', pad=15)
+    # 반지름 축 눈금 라벨 각도 0으로 설정
+    ax.set_rlabel_position(0)
+    # 반지름 축 눈금 설정
+    plt.yticks([0,5,10,15,20], ['0','5','10','15','20'], fontsize=10)
+    plt.ylim(0,20)
+
+    # 방사형 차트 출력
+    ax.plot(angles, data, color=color, linewidth=2, linestyle='solid')
+    # 도형 안쪽 색상 설정
+    ax.fill(angles, data, color=color, alpha=0.4)
+    # 각 차트의 제목 생성
+    ax.title(row.Tm, size=20, color=color, x=-0.2, y=1.2, ha='left')
+
+# 차트 간 간격 설정
+plt.tight_layout(pad=3)
+plt.show()
+
+```
+- for 문을 사용하여 각각의 그래프를 만들도록함
+
+#### 방사형 차트 시각화-하나의 차트에 모든 그룹
+```
+# 방사형 차트 - 한 번에 시각화
+
+labels = df3.columns[1:]
+num_labels = len(labels)
+
+# 등분점 생성
+angles = [x/float(num_labels)*(2*pi) for x in range(num_labels)]
+# 시작점 생성
+angles += angles[:1]
+
+my_palette = plt.cm.get_cmap("Set2", len(df3.index))
+
+fig = plt.figure(figsize=(8,8))
+fig.set_facecolor('white')
+ax = fig.add_subplot(polar=True)
+
+for i, row in df3.iterrows():
+    color = my_palette(i)
+    data = df3.iloc[i].drop('Tm').tolist()
+    data += data[:1]
+
+    # 시작점 설정
+    ax.set_theta_offset(pi / 2)
+    # 시계방향 설정
+    ax.set_theta_direction(-1)
+
+    # 각도 축 눈금 생성
+    plt.xticks(angles[:-1], labels, fontsize=13)
+    # 각 축과 눈금 사이 여백 생성
+    ax.tick_params(axis='x', which='major', pad=15)
+    # 반지름 축 눈금 라벨 각도 0으로 설정
+    ax.set_rlabel_position(0)
+    # 반지름 축 눈금 설정
+    plt.yticks([0,5,10,15,20], ['0','5','10','15','20'], fontsize=10)
+    plt.ylim(0,20)
+
+    # 방사형 차트 출력
+    ax.plot(angles, data, color=color, linewidth=2, linestyle='solid', label=row.Tm)
+    # 도형 안쪽 색상 설정
+    ax.fill(angles, data, color=color, alpha=0.4)
+
+plt.legend(loc=(0.9,0.9))
+plt.show()
+
+```
+
+- 그룹이 많지 않은 경우에 위와 같이 비교하는 것이 더 좋음
+
+
+#### 평행 좌표 그래프 시각화
+
+```
+fig,axes=plt.subplot()
+plt.figure(figsize=(16,8))
+parallel_coordinates(df3,'Tm',ax=axes,colormap='winter',Linewidth="0.5")
+
+```
+
+- 방사형 차트를 길게 표현한 것
 
 <br>
 <br>
