@@ -161,12 +161,12 @@ ex) 웹사이트 접속시간, 구매비용 공분산
     - 회귀분석의 정확도를 가늠하는 중요한 기준 값
 
 - 상관분석의 한계
-
-    ![alt text](image-8.png)
-        - 2차 방정식 그래프와 비슷한 모양일 경우 상관계수 매우 ↓
-        - 따라서 시각화와 함께 확인
+    - 2차 방정식 그래프와 비슷한 모양일 경우 상관계수 매우 ↓
+    - 따라서 시각화와 함께 확인
 
 [상관분석표 ]
+    ![alt text](image-8.png)
+      
 
 ![alt text](image-9.png)
 
@@ -234,7 +234,14 @@ sns.heatmap(numeric_df.corr(),
 
 ![alt text](image-11.png)
 
+### 10.3.1 시간 시각화 학습
+```df['Date2']=pd.to_datetime(df['Order Date'], dayfirst=True)
+df = df.sort_values(by='Date2')
+df['Year'] = df['Date2'].dt.year
 
+df_line=df[df.Year==2018]
+df_line=df_line.groupby('Date2')['Sales'].sum().reset_index()
+df_line.head()
 
 <br>
 <br>
