@@ -48,6 +48,122 @@
 ```
 
 <!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+### 10.5 분포 시각화
+
+분포시각화: 연속형(양적척도), 명목형(질적척도) 구분
+
+1. 연속형(양적척도)
+- 막대그래프, 선그래프, 히스토그램 
+
+![alt text](image-24.png)
+
+
+2. 명목형(질적척도)
+- 파이차트, 도넛차트 
+
+![alt text](image-25.png)
+
+- 수치를 함께 표시 
+- 트리맵 차트: 구성 요소가 복잡한 질적 척도 표현 
+    - 하나의 큰 사각형을 구성 요소 비율에 따라 작은 사각형으로 쪼개어 분포 표현
+    - 위계구조 표현 가능
+    - ex) 바지(긴 바지 + 반바지)
+    - 단점: 구성 요소들 간의 규모차이 大 -> 표현 어려움 
+- 와플 차트: 와플처럼 일정한 네모난 조각들로 분포 표현
+
+![alt text](image-26.png)
+
+
+[패키지 설치 및 임포트]
+
+```
+!pip install plotly
+!pip install pywaffle # 와플 차트를 만들기 위한 라이브러리 
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import numpy as np
+import plotly.express as px # 웹 기반 시각화를 빠르고 쉽게 생성하기 위한 라이브러리 
+from pywaffle import Waffle
+
+```
+
+[전체 신장 데이터 히스토그램 시각화]
+
+```
+df1 = df[['height_cm']] #신장 칼럼만 필터링
+
+plt.hist(df1, bins=10,label='bins=10') #10cm 단위로 히스토그램 시각화
+plt.legend()
+plt.show()
+
+```
+
+[성별을 구분하여 히스토그램 시각화]
+
+```
+df1_1 = df[df['sex'].isin(['man'])]#df에서 sex컬럼의 값이 man인 행들만 필터링하여 새로운 df1_1을 생성
+df1_1 = df1_1[['height_cm']]#man인 컬럼 중에 height_cm컬럼만 선택하여 df1_1을 재정의 
+df1_2 = df[df['sex'].isin(['woman'])]
+df1_2 = df1_2[['height_cm']]
+
+plt.hist(df1_1,color='green',alpha=0.2,label='Man', bins=10,density=True)
+
+plt.hist(df1_2,color='red',alpha=0.2, bins=10,label='WOMAN',density=True)
+plt.legend()
+plt.show()
+```
+
+alpha=0.2 (막대의 투명도를 20%로 설정하여 두 히스토그램이 겹쳐도 아래쪽 막대가 보이도록)
+label='MAN' (범례에 표시될 레이블을 MAN으로 지정)
+density = True (막대의 높이를 빈도 대신 확률밀도로 정규화)
+ -> 이게 없으면(density=False) 데이터의 개수(빈도)로 출력됨 density=True는 다른 크기의 데이터셋을 비교, 확률분포 모양을 확인하는데 유용
+
+
+ [파이차트와 도넛차트 시각화를 위한 데이터 전처리]
+
+ ```
+ df2=df[['country','height_cm']]
+
+df2=df2[df.height_cm>=175]
+df2=df2.groupby('country').count().reset_index()
+
+df2.head(10)
+```
+
+groupby('country'): 현재 df2 dataframe을 'country'컬럼을 기준으로 그룹을 나눔
+.count(): 각 그룹(나라) 내에서 데이터 포인트의 개수를 계산
+.reset_index(): groupby작업의 결과로 'country'가 인덱스가 되는데, 이를 일반 컬럼으로 되돌립니다 
+    -> country를 인덱스가 아닌 일반 컬럼으로 만들어야만 나중에 이 컬럼을 기준으로 다시 필터링하거나 정렬 또는 다른 그룹화 작업을 할 때 더 직관적이고 쉽게 코드를 작성할 수 있음 
+
+
+[파이차트 시각화]
+```
+fig=plt.figure(figsize=(8,8)) #캔버스 생성
+fig.set_facecolor('white') #캔버스 배경색 설정
+ax=fig.add_subplot() #프레임 생성
+
+
+ax.pie(df2.height_cm,
+        labels=df2.country, #각 파이 조각에 
+       startangle=0, #시작점 degree 설정
+       counterclock=False, #시계방향
+       autopct=lambda p: '{:.1f}%'.format(p))
+plt.legend()
+plt.show()
+```
+df2.height_cm: 파이조각의 크기를 결정하는 데이터
+
+labels=df2.country: 각 파이 조각에 해당하는 레이블로 사용될 데이터 
+
+startangle=0, #시작점 degree 설정
+
+counterclock=False, #시계방향
+
+autopct=lambda p: '{:.1f}%'.format(p): 각 조각 내부에 표시되 비율 텍스의 형식을 지정(소수점 첫째자리까지 보여줌)
+
+#### 10.5.1 분포 시각화 실습
 
 
 
