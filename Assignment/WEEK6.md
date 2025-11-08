@@ -99,7 +99,9 @@
 
 #### **결측값 처리 실습**
 
-1. NaN, None이 아닌 빈칸(빈 문자열인 값)으로 되어있는 결측값이 있을 수 있음
+**1. 빈 문자열 결측값**
+
+ NaN, None이 아닌 빈칸(빈 문자열인 값)으로 되어있는 결측값이 있을 수 있음
 
 ```
 def is_emptystring(x):
@@ -108,7 +110,7 @@ def is_emptystring(x):
 df.apply(lambda x: is_emptystring(x))
 ```
 
-2. dropna()함수
+**2. dropna()함수**
 
 ```
 #모든 컬럼이 결측값인 행 제거
@@ -124,14 +126,222 @@ df_drop_slt=df.dropna(subset=["temp"])
 df_drop_any=df.dropna(how="any")
 ```
 
+**3. fillna(), 대치법**
+
+결측치에 원하는 값을 채워 넣는 함수 
+
+- DataFrame.fillna(value, inplace=False)
+value: 결측치를 대체할 값 (숫자, 문자열, 평균값 등)
+
+inplace: True로 설정하면 원본 데이터를 수정, False면 새로운 데이터프레임 반환
+
+**+) inplace=False,True 차이**
+
+df_filled = df.fillna(0): df_filled라는 새로운 데이터프레임을 생성
+
+df.fillna(0, inplace=True): 기존 df에 덮어씌움
+
+- DataFrame.fillna({'col':value})
+특정 컬럼만 개별적으로 채울 때 활용 (inplace=False가 기본값)
+
+```
+## 결측값 기본 대치 방법들
+
+# 특정값(0)으로 대치 - 전체 칼럼
+df_0_all = df.fillna(0)
+
+# 특정값(0)으로 대치 - 칼럼 지정
+df_0_slt = df.fillna({'temp':0})
+
+# 평균값 대치 - 전체 칼럼
+df_mean_all = df.fillna(df.mean())
+
+# 평균값 대치 - 칼럼 지정
+df_mean_slt = df.fillna({'temp':df['temp'].mean()})
+
+# 중앙값 대치 - 전체 칼럼
+df_median_all = df.fillna(df.median())
+
+# 중앙값 대치 - 칼럼 지정
+df_median_slt = df.fillna({'temp':df['temp'].median()})
+
+# 최빈값 대치 - 전체 칼럼
+df_mode_all = df.fillna(df.mode())
+
+# 최빈값 대치 - 칼럼 지정
+df_mode_slt = df.fillna({'temp':df['temp'].mode()})
+
+# 최대값 대치 - 전체 칼럼
+df_max_all = df.fillna(df.max())
+
+# 최대값 대치 - 칼럼 지정
+df_max_slt = df.fillna({'temp':df['temp'].max()})
+
+# 최소값 대치 - 전체 칼럼
+df_min_all = df.fillna(df.min())
+
+# 최소값 대치 - 칼럼 지정
+df_min_slt = df.fillna({'temp':df['temp'].min(), 'hum':df['hum'].min()})
+```
+
+**4. fillna(), 보간법**
+
+```
+# 전 시점 값으로 대치 - 칼럼 지정
+df1 = df.copy()
+df1['temp'].fillna(method='pad', inplace=True)
+
+# 뒤 시점 값으로 대치 - 전체 칼럼
+df.fillna(method='bfill')
+
+# 뒤 시점 값으로 대치 - 결측값 연속 한 번만 대치
+df.fillna(method='bfill', limit=1)
+
+# 보간법 함수를 사용하여 대치 - 단순 순서 방식
+ts_intp_linear = df.interpolate(method='values')
+
+# 보간법 함수를 사용하여 대치 - 시점 인덱스 사용
+
+# dteday 칼럼 시계열 객체 변환
+df['dteday'] = pd.to_datetime(df['dteday'])
+
+# dteday 칼럼 인덱스 변경
+df_i = df.set_index('dteday')
+
+# 시점에 따른 보간법 적용
+df_time = df_i.interpolate(method='time')
+
+```
+
+전 후 시점의 값과 동일한 값으로 대치 -> method='pad'or'bfill'
+
+**5. 다중 대치법**
+
+```
+# 다중 대치(MICE)
+
+# dteday 칼럼 제거
+df_dp = df.drop(['dteday'], axis=1)
+
+# 다중 대치 알고리즘 설정
+imputer = IterativeImputer(imputation_order='ascending',
+                           max_iter=10, random_state=42,
+                           n_nearest_features=5)
+
+# 다중 대치 적용
+df_imputed = imputer.fit_transform(df_dp)
+
+# 판다스 변환 및 칼럼 설정
+df_imputed = pd.DataFrame(df_imputed)
+
+df_imputed.columns = ['instant','season','yr','mnth','holiday','weekday','workingday','weathersit','temp','atemp','hum','windspeed','casual','registered','cnt']
+
+```
+1. dteday 칼럼 제거
+
+IterativeImputer은 숫자형 데이터만 처리 가능 날짜형 컬럼 제거
+
+2. IterativeImputer 설정
+
+3. 다중 대치 적용
+
+fit_transform()은 결측치를 예측하여 채운 numpy배열을 반환 
+아직 dataframe형태가 아님 나중에 pd.dataframe()으로 다시 변환
+
+4. pandas dataframe으로 변환
+
+IterativeImputer는 컬럼명을 잃어버림
+수동으로 원래 컬럼명 다시 지정
+
 
 ### 11.2. 이상치 처리
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요. -->
+- 이상치: 일부관측치의 값이 전체 데이터의 범위에서 크게 벗어난 값
+- 문제점: 분석 및 모델링의 정확도를 감소시킴
+- 전체 데이터의 양이 많을수록 튀는 값이 통곗값에 미치는 영향력이 줄어듦 -> 이상치 제거 필요성 낮음 
+
+*처리 방법*
+1. 관측값 변경
+    하한 값, 상한 값 결정 -> 하한 값, 상한 값으로 대체 
+
+2. 가중치 조정
+    이상치의 영향을 감소시키는 가중치를 주는 방법
+
+*이상치 확인 방법*
+- EDA, 데이터 시각화 
+- 박스플롯 상에서 분류된 극단치 선정 
+
+- 평균으로부터 +-표준편차 이상 떨어져있는 값
+- 평균은 이상치에 민감하게 변함 -> 이상치에 보다 강건한 중위수와 중위수 절대 편차를 사용하는 것이 효과적 
+
+
+*이상치에 대한 관점*
+
+- 무조건적 이상치 탐색 지양
+- 데이터 변수들의 의미, 비즈니스 도메인 이해 -> 이상치의 원인 파악
+- ex) 경력,연봉 관계에서 전문직, 사무직 등으로 나눠서 분석할 수도 있음
+- 도메인에 따라 중요한 분석요인 -> 제조 공정의 불량 원인 
+
+#### 이상치 처리 실습
+
+**1. describe()**
+
+```
+df['col'].describe()
+```
+컬럼의 min max mean 25% 값 등을 알 수 있음 
+
+이상치 판단 기준 = IQR 3 (약 5시그마)
+
+**2. boxplot**
+
+```
+sns.boxplot(y='col',data=dataframe)
+plt.show()
+```
+
+
 
 ### 11.3. 변수 구간화
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요. -->
+
+- 목적: 데이터 분석 성능 향상, 해석의 편리성
+- how? 이산형 변수 -> 범주형 변수 
+- ex) 나이 -> 10대, 20대, 30대 등으로 범주형으로
+
+*구간을 나누는 방법*
+1. 클러스터링: 타깃 변수 설정 필요x, 구간화할 변수의 값들을 유사한 수준끼리 묶음
+2. 의사결정나무: 타깃 변수 설정 후 구간화할 변수의 값을 타깃 변수 예측에 가장 적합한 구간으로 나누어 줌 
+
+*변숫값이 효과적으로 구간화 되었는지 측정 지표*
+1. WOE
+2. IV: 수치가 높을수록 종속변수의 true와 false를 잘 구분할 수 있는 정보량이 많다는 의미 (변수가 종속변수를 제대로 설명할 수 있도록 구간화가 잘되면 IV값 높아짐)
+
+
+#### 변수 구간화 실습
+
+**1. df.insert()**
+
+```
+df.insert(loc, column, value)
+df.insert(2,'BMI_bin',0)
+```
+
+loc위치,column제목,value무엇을 넣을건데
+
+3번째 줄에 BMI_bin이라는 제목을 만들거고 그 아래 0을 채울 것임
+
+**2. df.cut()**
+
+```
+pd.cut(x, bins, labels=None, right=True, include_lowest=False)
+```
+
+x	구간화할 데이터 (Series, list 등)
+bins	구간의 경곗값 리스트 또는 구간 개수(int)
+labels	각 구간의 이름 (범주형 레이블)
+right	True면 오른쪽 경계 포함 (a, b], False면 왼쪽 포함 [a, b)
+include_lowest	첫 번째 구간의 왼쪽 경계 포함 여부 (True면 포함)
 
 ### 11.4. 데이터 표준화와 정규화 스케일링
 
