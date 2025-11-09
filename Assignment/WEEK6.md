@@ -345,7 +345,78 @@ include_lowest	첫 번째 구간의 왼쪽 경계 포함 여부 (True면 포함)
 
 ### 11.4. 데이터 표준화와 정규화 스케일링
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요. -->
+스케일링: 독립변수들이 서로 단위가 다르거나 편차가 심할 때 값의 스케일을 일정한 수준으로 변환시켜주는 표준화, 정규화 
+
+- ML모델의 학습효율 증가 
+- 해석 용이: 평균보다 어느 정도 크거나 작은지 알 수 있는 수치로 변환 
+
+*표준화*
+- 각 관측치의 값이 전체 평균을 기준으로 어느 정도 떨어져 있는지 나타낼 때 사용
+- 평균 = 0, 표준편차 = 1
+- Z-score  
+- 서로 다른 변수 간 값의 크기 직관적으로 비교 가능
+- 평균을 중심으로 퍼진 정도
+
+
+
+*정규화*
+- 데이터의 범위를 0부터 1까지 변환하여 데이터 분포를 조정하는 방법
+- 전체 데이터 중에서 해당 값이 어떤 위치에 있는지 파악하는데 유용 
+- 0에 가까울수록 작은, 1에 가까울수록 큰 값
+- 최댓값 1 최솟값 0
+
+
+![alt text](image-32.png)
+
+
+-> 이상치에 민감하다는 단점 : RounbustScaler 
+데이터의 중앙값을 0으로 잡고 Q1과 Q3사분위수와의 IQR 차이를 1이 되도록하는 스케일링 기법 
+
+거리를 활용한 군집 분석에 필수적 
+
+#### 11.4.1 데이터 표준화, 정규화 스케일링 실습
+
+**1. 평균, 분산확인**
+
+```
+print(df.mean())
+print(df.var())
+```
+
+**2. 표준화 스케일링**
+
+```
+StandardScaler=StandardScaler()
+df_stand =StandardScaler.fit_transform(df)
+
+df_stand=pd.DataFrame(data=df_stand,columns=df.columns)
+```
+StandardScaler()함수 -> 데이터셋에 적용하면 표준화된 값으로 변환 
+
+결과 -> 평균 0에 수렴, 분산 1에 수렴
+
+**3. 정규화 스케일링**
+
+```
+MinMaxScaler=MinMaxScaler()
+df_minmax = MinMaxScaler.fit_transform(df)
+
+df_minmax=pd.DataFrame(data=df_minmax,columns=df.columns)
+```
+
+모든 컬럼의 최솟값 = 0, 최댓값 = 1
+
+**4. RobustScaler 스케일링**
+
+```
+RobustScaler=RobustScaler()
+df_robust=RobustScaler.fit_transform(df)
+
+df_robust=pd.DataFrame(data=df_robust,columns=df.columns)
+```
+
+컬럼들의 평균과 분포가 유사하게 변환 -> RobustScaler는 평균대신 중앙값을 사용, 극단값의 영향을 거의 받지 않음 
+
 
 
 
