@@ -345,18 +345,184 @@ ex)
 큰 비중의 클래스의 데이터를 작은 비중의 클래스 데이터만큼만 추출하여 학습
 
 - 랜덤 언더샘플링: 무작위로 제거
-- EasuEnsemble: 
+
+- EasuEnsemble: 큰 비중의 클래스를 작은 비중의 클래스와 동일한 크기의 데이터셋으로 나눈다 n개의, 작은 비중의 클래스와 같은 크기 데이터셋이 생성되고 각각을 작은 비중의 클래스와 학습시킴 모든 결과값을 종합하여 최종 분류 모델을 만듦
+
+![alt text](image-38.png)
+
+
+- Condensed Nearest Neighbor(CNN): 큰 클래스의 관측치 중 작은 클래스와 속성값이 확연히 다른 관측치를 제거 
+공간상 위치가 맞닿는 부분의 관측치만 남김
+
+by gemini
+
+ex) 시험공부용 요약노트
+
+원본데이터:1000 페이지
+
+CNN: 1000페이지 책에서 시험에 나오는 핵심예저, 개념을 쏙쏙 뽑아 20페이지짜리 요약 노트를 만듦
+
+1. 요약노트를 비워둠
+
+2. 1000페이지짜리 책을 스캔
+
+3. 현재 가진 요약노트만으로 풀 수 있는지 2~3번 체크 
+
+
 
 **2) 오버샘플링**
 
 언더샘플링과 반대, 데이터 뻥튀기
 
+- 랜덤 오버샘플링: 무작위로 선택, 반복 추출
 
+-> 단순히 동일한 관측치 복제되는 것이므로 정보의 양 증가x, 모델 과적합 발생 가능성 
+
+- Synthetic Minority Over-Sampling(SMOTE): 
+
+![SMOTE개념 예시](image-39.png)
+
+작은 클래스의 각각의 관측치들 사이에 가상의 합성샘플을 생성하여 관측치 증가 
+
+
+- Adaptive Synthetic Sampling Approach(ADASYN)
+
+
+![ADASYN 단계](image-40.png)
+
+
+
+**오버샘플링 시 주의사항: 학습 셋, 테스트 셋 분리 후 적용동일한 데이터가 들어가서 과적합을 유발하기 때문**
+
+*학습된 모델의 예측력을 검증할 때 사용하는 테스트셋에는 오버샘플링을 적용하지 않은 순수한 데이터를 사용함*
+
+(당연함 현실에서는 어느 한 쪽이 비중이 적으니까 그걸 반영해야지)
+
+오버/언더 샘플링 적용 후에는 예측 성능의 편차가 증가한다. 모델 성능 지표를 확인할 때, 여러 번 테스트를 하여 표준편차와 같은 평가 측도의 변동에 대한 정보를 같이 표기하는 것이 좋음
+
+
+### 11.8.1 오버/언더 샘플링 실습
+
+**<언더 샘플링(random)>**
+
+```
+# 언더샘플링 적용
+
+X_train_under, y_train_under = RandomUnderSampler(
+    random_state=0).fit_resample(X_train,y_train)
+
+print('RandomUnderSampler 적용 전 학습셋 변수/레이블 데이터 세트: '
+      , X_train.shape, y_train.shape)
+print('RandomUnderSampler 적용 후 학습셋 변수/레이블 데이터 세트: '
+      , X_train_under.shape, y_train_under.shape)
+print('RandomUnderSampler 적용 전 레이블 값 분포: \n'
+      , pd.Series(y_train['Purchased']).value_counts())
+print('RandomUnderSampler 적용 후 레이블 값 분포: \n'
+      , pd.Series(y_train_under['Purchased']).value_counts())
+```
+
+>>> 결과 300개에서 224가 됨 적은 클래스의 크기였던 112 에 맞춰서 무작위로 데이터를 삭제 했기 때문
+
+
+**<오버 샘플링(SMOTE)>**
+
+```
+# 오버샘플링 적용
+
+smote = SMOTE(k_neighbors = 2, random_state=0)
+oversample = SMOTE()
+
+X_train_over,y_train_over = smote.fit_resample(X_train,y_train)
+print('SMOTE 적용 전 학습용 변수/레이블 데이터 세트: '
+      , X_train.shape, y_train.shape)
+print('SMOTE 적용 후 학습용 변수/레이블 데이터 세트: '
+      , X_train_over.shape, y_train_over.shape)
+print('SMOTE 적용 전 레이블 값 분포: \n'
+      , pd.Series(y_train['Purchased']).value_counts())
+print('SMOTE 적용 후 레이블 값 분포: \n'
+      , pd.Series(y_train_over['Purchased']).value_counts())
+```
+
+>>> 결과 전체 데이터의 개수 300 -> 376 
+
+큰 클래스 개수 188에 맞춰 오버 샘플링 
 
 
 ### 11.9. 데이터 거리 측정 방법
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요. -->
+데이터 거리 측정 = 데이터 유사도 측정 
+
+**데이터 거리를 측정하기 전에 데이터 표준화, 정규화 가공을 해줘야함**
+
+**<대표적인 거리 측정 방법>**
+
+1. 유클리드 거리 
+
+피타고라스 정리 활용하여 직선거리 측정 
+
+
+
+2. 맨해튼 거리 
+
+* 격자모양 도로에서 최단거리를 구하는 원리 이용
+
+* 맨해튼거리 = L1Norm / 유클리드 거리 = L2Norm
+
+![맨해튼 거리 예시](image-41.png)
+
+
+* A지점과 B지점까지의 X축거리, Y축거리의 합
+
+
+
+3. 민코프스키 거리
+
+* 옵션값을 설정하여 거리 기준을 조정할 수 이쓴ㄴ 거리 측정 방법
+
+![민코프스키 거리 수식](image-42.png)
+
+
+* p값을 조정 가능(p=1일 때, 맨해튼 거리와 동일, p=2일 때, 유클리드 거리와 동일)
+
+
+4. 체비쇼프 거리
+
+* 민코프스키 거리의 p값을 무한대로 설정한 값
+
+* L max Norm, 맥시멈 거리
+
+* 군집 간의 최대 거리를 구할 때 사용
+
+![체비쇼프 거리 수식](image-43.png)
+
+
+
+5. 마할라노비스 거리
+
+* 유클리드 거리에 공분산을 고려한 거리 측정 방법
+
+* 확률 분포 고려, 공분산 행렬 사용
+
+* 기존 유클리드 공식에 공분산 행렬을 더함 
+
+![마할라노비스 거리 수식](image-44.png)
+
+
+![마할라노비스 거리 개념 예시](image-45.png)
+
+
+
+
+6. 코사인 거리
+
+* 두 벡터의 사이각을 구해서 유사도를 구하는 것 
+
+![코사인 거리 수식](image-46.png)
+
+* 1 - (코사인 유사도) = 코사인 거리  
+
+
+
 
 <br>
 <br>
