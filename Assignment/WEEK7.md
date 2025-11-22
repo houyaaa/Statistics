@@ -554,6 +554,8 @@ print('SMOTE 적용 후 레이블 값 분포: \n'
 
 <!-- 4주차 과제부터 실습하면서 배운 파이썬 문법을 적용하면서 실습을 진행해주세요 -->
 
+과제 코랩 링크
+https://colab.research.google.com/drive/1UCDg-UB2yI41_rIRiEAbaJ1m28JR7gBY?usp=sharing
 ~~~
 과제 가이드라인
 
